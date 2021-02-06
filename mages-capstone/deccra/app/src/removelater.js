@@ -1,8 +1,8 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React from 'react';
 
 function Example() {
-    axios.get('http://localhost:8000/terminal_1/authors').then(response => console.log(response)).catch(error => console.log(error));
+    axios.get('http://localhost:8000/terminal_1/authors/').then(response => console.log(response.data)).catch(error => console.log(error));
     return (
         <div>component loaded</div>
     )
