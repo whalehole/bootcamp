@@ -4,7 +4,6 @@ from .models import Character, Gender, CommentSection, CharacterArt, Comment, Ch
 # Register your models here.
 
 
-admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Character)
 admin.site.register(Gender)
 admin.site.register(CommentSection)

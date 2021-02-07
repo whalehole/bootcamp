@@ -1,20 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.core.validators import MinValueValidator
 
 # Create your models here.
-
-# class CustomUser(AbstractUser):
-#     date_joined = models.DateField(auto_now_add=True)
-#     date_updated = models.DateField(auto_now=True)
-#     date_of_birth = models.DateField(blank=True, null=True)
-#     country = models.CharField(max_length=100, blank=True)
-#     language = models.CharField(max_length=100, default='English')
-#     self_introduction = models.TextField(blank=True)
-
-#     def __str__(self):
-#         return self.email
 
 class Character(models.Model):
     characterid = models.AutoField(primary_key=True)
@@ -40,6 +28,8 @@ class CommentSection(models.Model):
 class CharacterArt(models.Model):
     character_artid = models.AutoField(primary_key=True)
     userid = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='char_art_creator')
+    title = models.CharField(max_length=50, blank=True)
+    caption = models.CharField(max_length=300, blank=True)
     characterid = models.ForeignKey('Character', on_delete=models.CASCADE, related_name='char_art_char', blank=True, null=True)
     date_created = models.DateField(auto_now_add=True)
     date_updated = models.DateField(auto_now=True)
