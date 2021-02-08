@@ -147,7 +147,18 @@ STATIC_URL = '/static/'
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "drf_social_oauth2.backends.DjangoOAuth2",
+    # "social_core.backends.google.GoogleOAuth2",
+    "social_core.backends.facebook.FacebookAppOAuth2",
+    "social_core.backends.facebook.FacebookOAuth2",
 )
+
+SOCIAL_AUTH_FACEBOOK_KEY = '738126923740390'
+SOCIAL_AUTH_FACEBOOK_SECRET = 'bda5cac93d41f9dfaeef6a6ffb801091'
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+    'fields': 'id, name, email'
+}
+SOCIAL_AUTH_USER_FIELDS = ['email', 'first_name', 'username', 'password']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

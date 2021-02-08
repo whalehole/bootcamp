@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser
+from django.contrib.auth.password_validation import validate_password
 
 class SignupSerializer(serializers.ModelSerializer):
     
@@ -15,3 +16,24 @@ class SignupSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class UserChangeDetailsSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'username', 'country', 'self_introduction', 'date_of_birth', 'language']
+
+class UserChangePasswordSerializer(serializers.Serializer):
+    
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+class UsersSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'username', 'country', 'self_introduction']

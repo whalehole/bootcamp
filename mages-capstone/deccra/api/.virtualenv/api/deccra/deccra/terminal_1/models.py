@@ -38,6 +38,7 @@ class CharacterArt(models.Model):
 class Comment(models.Model):
     commentid = models.AutoField(primary_key=True)
     comment_sectionid = models.ForeignKey('CommentSection', on_delete=models.CASCADE, related_name='comment_comment_section')
+    userid = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='commenter')
     date_created = models.DateField(auto_now_add=True)
     date_updated = models.DateField(auto_now_add=True)
 
