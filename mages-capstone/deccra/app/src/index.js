@@ -6,7 +6,7 @@ import Example from './removelater';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Example />
+    {/*  */}
   </React.StrictMode>,
   document.getElementById('root')
 );

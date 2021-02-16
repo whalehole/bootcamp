@@ -22,6 +22,7 @@ class UserChangeDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'username', 'country', 'self_introduction', 'date_of_birth', 'language']
+        read_only_fields = ['email']
 
 class UserChangePasswordSerializer(serializers.Serializer):
     
@@ -31,6 +32,12 @@ class UserChangePasswordSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         validate_password(value)
         return value
+
+class UserVerifyPasswordSerializer(serializers.Serializer):
+
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
+
 
 class UsersSerializer(serializers.ModelSerializer):
 

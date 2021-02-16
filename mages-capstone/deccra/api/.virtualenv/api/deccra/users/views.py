@@ -5,12 +5,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth import get_user_model
-from .serializers import SignupSerializer, UsersSerializer, UserChangeDetailsSerializer, UserChangePasswordSerializer
+from .serializers import SignupSerializer, UserVerifyPasswordSerializer, UsersSerializer, UserChangeDetailsSerializer, UserChangePasswordSerializer
 import requests
 from rest_framework.views import APIView
 from rest_framework import permissions
 from .permissions import IsUser
 from django.http import Http404
+from django.contrib.auth import authenticate, login
 
 User = get_user_model()
     
@@ -25,12 +26,31 @@ class SignupView(APIView):
                 r = requests.post('http://127.0.0.1:8000/api-auth/token', data = {
                     'username': new_user.email,
                     'password': request.data['password'],
-                    'client_id': '5eGXfNZXOE0nOJyZYp172sKZxtuD5uaJNNfdf0B5',
-                    'client_secret': 'q7qrEyUjSXTRwHPnzNlXKFKTrpUhGPTnmkOdRFCl44OYEHXE04roWfPDIuCuq4HNNSqzMeampbnv6x214KUwVAPWCyzOBDSHeJ5r4gkmIWRleAWyfJWL8tx2ETqVvQHU',
+                    'client_id': 'CeCoLs5SF0ZFOfvt1tOe77sQVv9YqNSObQ4Q66a0',
+                    'client_secret': 'uGGNC4oVZfsLpcpmBUNhTbqgM7aNOGrmcF7IQLOXKeBJhz7MCx49iMTtAs2Tz41TW0ixI1gJWiL6NxNQNKWDUyCdozp3gPGfPLx57T6M5f1OfA905P6XYnZ0mYzPZHt3',
                     'grant_type': 'password'
                 })
                 return Response(r.json(), status=status.HTTP_201_CREATED)
         return Response(reg_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SigninView(APIView):
+    
+    def post(self, request):
+        serializer = UserVerifyPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.data.get('email')
+            password = serializer.data.get('password')
+            user = authenticate(request, email=username, password=password)
+            if user is not None:
+                r = requests.post('http://127.0.0.1:8000/api-auth/token', data = {
+                    'username': user.email,
+                    'password': request.data['password'],
+                    'client_id': 'CeCoLs5SF0ZFOfvt1tOe77sQVv9YqNSObQ4Q66a0',
+                    'client_secret': 'uGGNC4oVZfsLpcpmBUNhTbqgM7aNOGrmcF7IQLOXKeBJhz7MCx49iMTtAs2Tz41TW0ixI1gJWiL6NxNQNKWDUyCdozp3gPGfPLx57T6M5f1OfA905P6XYnZ0mYzPZHt3',
+                    'grant_type': 'password'
+                })
+                return Response(r.json(), status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserChangeDetailsView(APIView):
     permission_classes = [IsUser]
@@ -64,6 +84,21 @@ class UserChangePasswordView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class UserChangeEmailView(APIView):
+    permission_classes = [IsUser]
+
+    def put(self, request):
+        serializer = UserVerifyPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            username = self.request.user
+            password = serializer.data.get('password')
+            user = authenticate(request, email=username, password=password)
+            if user is not None:
+                user.email = serializer.data.get('email')
+                user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UsersListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
@@ -82,15 +117,3 @@ class CurrentUserView(APIView):
 
 
 
-
-
-
-    # def get_object(self, pk):
-    #     try: 
-    #         return User.objects.get(pk=pk)
-    #     except User.DoesNotExist:
-    #         raise Http404
-    # def get(self, request, pk, format=None):
-    #     queryset = self.get_object(pk)
-    #     serializer = UsersSerializer
-    #     return Response(serializer.data)
