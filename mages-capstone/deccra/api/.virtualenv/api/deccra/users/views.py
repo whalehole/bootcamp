@@ -15,6 +15,16 @@ from django.contrib.auth import authenticate, login
 
 User = get_user_model()
     
+class RefreshTokenView(APIView):
+
+    def post(self, request):
+        r = requests.post('http://127.0.0.1:8000/api-auth/token', data = {
+            'refresh_token': request.data['refresh_token'],
+            'client_id': 'CeCoLs5SF0ZFOfvt1tOe77sQVv9YqNSObQ4Q66a0',
+            'client_secret': 'uGGNC4oVZfsLpcpmBUNhTbqgM7aNOGrmcF7IQLOXKeBJhz7MCx49iMTtAs2Tz41TW0ixI1gJWiL6NxNQNKWDUyCdozp3gPGfPLx57T6M5f1OfA905P6XYnZ0mYzPZHt3',
+            'grant_type': 'refresh_token'
+        })
+        return Response(r.json(), status=status.HTTP_201_CREATED)
 
 class SignupView(APIView):
 

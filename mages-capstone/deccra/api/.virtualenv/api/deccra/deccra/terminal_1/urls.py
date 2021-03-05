@@ -32,4 +32,7 @@ urlpatterns = [
     path('charartcount/', views.UserGetCharArtCountView.as_view()),
     path('commentcount/', views.UserGetCommentCountView.as_view()),
     path('usercount/', views.UserGetUserCountView.as_view()),
+    path('checkchararturl/', views.UserGetCharArtUrlView.as_view()),
+    path('addCharartPageViews/', views.UserViewCharartView.as_view()),
+    path('addCharPageViews/', views.UserViewCharView.as_view()),
 ]

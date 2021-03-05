@@ -10,4 +10,5 @@ urlpatterns = [
     path('user/changedetails/', views.UserChangeDetailsView.as_view()),
     path('user/changepw/', views.UserChangePasswordView.as_view()),
     path('user/changeemail/', views.UserChangeEmailView.as_view()),
+    path('refreshtoken/', views.RefreshTokenView.as_view()),
 ]

@@ -6,15 +6,28 @@ from rest_framework import status
 from rest_framework import permissions
 from .serializers import (UserCreatedCharacterDetailsSerializer, UserCreateCharacterSerializer, AdminCreateGenderSerializer, UserCreateCharacterArtSerializer, UserCreatedCharacterArtDetailsSerializer, UserCreateCommentSerializer, UserCreatedCommentDetailsSerializer, UserLikeCommentSerializer, UserCommentLikesSerializer, UserFollowCharacterSerializer, UserLikeCharacterArtSerializer, UserUserFollowSerializer, UserCharArtBookmarkSerializer,
 UserGetUserSerializer, UserGetCharacterArtSerializer, UserGetCharacterSerializer, UserGetCommentSerializer, UserGetCommentResponseSerializer, UserCreateCommentResponseSerializer, UserCreatedCommentResponseDetailsSerializer,
-UserCreateCharArtCharArtRelationshipSerializer, UserGetChildCharArtSerializer, UserGetParentCharArtSerializer, UserCreateCharTagsSerializer, UserCreateCharArtTagsSerializer, UserGetBookmarksOfUsersSerializer, UserGetFollowingUsersSerializer, UserGetCountSerializer)
+UserCreateCharArtCharArtRelationshipSerializer, UserGetChildCharArtSerializer, UserGetParentCharArtSerializer, UserCreateCharTagsSerializer, UserCreateCharArtTagsSerializer, UserGetBookmarksOfUsersSerializer, UserGetFollowingUsersSerializer, UserGetCountSerializer, UserGetCharArtUrlSerializer,
+UserViewCharartSerializer, UserViewCharSerializer)
 from .models import Character, Gender, CharacterArt, Comment, CommentCommentReply, CharArtCharArtRelationship, CharArtTag, CharacterLikes, CharacterHates, CharacterTag, UserCharacterLike, UserCharacterFollow, UserCharArtBookmark, UserCharArtLike, UserCommentLike, UserUserFollow
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 import json
+from rest_framework.pagination import PageNumberPagination
+from .homepagePagination import PaginationHandlerMixin
 User = get_user_model()
 
-# Create your views here.
+# PAGINATION
+
+class HomePagePagination(PageNumberPagination):
+    page_size = 12
+    page_size_query_param = 'page_size'
+
+class BasicPagination(PageNumberPagination):
+    page_size = 12
+    page_size_query_param = 'page_size'
+
+# VIEWS
 
 class UserCreateCharacterView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -27,14 +40,26 @@ class UserCreateCharacterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserCreatedCharacterDetailsView(APIView):
-    # permission_classes = [IsUser] FORGET IT LOL
+class UserCreatedCharacterDetailsView(APIView, PaginationHandlerMixin):
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = BasicPagination
 
-    # def get(self, request):
-    #     queryset = Character.objects.filter(userid_id=self.request.user.id)
-    #     character = queryset.get(characterid=request.GET.get('characterid'))
-    #     serializer = UserCreatedCharacterDetailsSerializer(character)
-    #     return Response(serializer.data)
+    def get(self, request):
+        queryset = Character.objects.filter(userid_id=self.request.user.id)
+        if request.GET.get('order_by'):
+            # sort by newest
+            if request.GET.get('order_by') == 'newest':
+                queryset = queryset.order_by('-date_created')
+            # sort by oldest
+            elif request.GET.get('order_by') == 'oldest':
+                queryset = queryset.order_by('date_created')
+         
+        page = self.paginate_queryset(queryset)
+        if page is not None:           
+            serializer = self.get_paginated_response(UserCreatedCharacterDetailsSerializer(page, many=True).data)
+        else:
+            serializer = UserCreatedCharacterDetailsSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         queryset = Character.objects.filter(userid_id=self.request.user.id)
@@ -71,8 +96,26 @@ class UserCreateCharacterArtView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class UserCreatedCharacterArtDetailsView(APIView):
+class UserCreatedCharacterArtDetailsView(APIView, PaginationHandlerMixin):
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = BasicPagination
+
+    def get(self, request):
+        queryset = CharacterArt.objects.filter(userid_id=self.request.user.id)
+        if request.GET.get('order_by'):
+            # sort by newest
+            if request.GET.get('order_by') == 'newest':
+                queryset = queryset.order_by('-date_created')
+            # sort by oldest
+            elif request.GET.get('order_by') == 'oldest':
+                queryset = queryset.order_by('date_created')
+         
+        page = self.paginate_queryset(queryset)
+        if page is not None:           
+            serializer = self.get_paginated_response(UserCreatedCharacterArtDetailsSerializer(page, many=True).data)
+        else:
+            serializer = UserCreatedCharacterArtDetailsSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         queryset = CharacterArt.objects.filter(userid_id=self.request.user.id)
@@ -265,8 +308,8 @@ class UserCharArtBookmarkView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        queryset = UserCharArtBookmark.objects.filter(userid_follower=self.request.user)
-        bookmarked_character_art = queryset.get(userid=request.GET.get('userid'))
+        queryset = UserCharArtBookmark.objects.filter(userid=self.request.user)
+        bookmarked_character_art = queryset.get(character_artid=request.GET.get('character_artid'))
         bookmarked_character_art.delete()
         return Response(status=status.HTTP_204_NO_CONTENT) 
 
@@ -291,31 +334,38 @@ class UserGetUserView(APIView):
 
 # users get character art
 
-class UserGetCharacterArtView(APIView):
-
-    def get(self, request):
+class UserGetCharacterArtView(APIView, PaginationHandlerMixin):
+    pagination_class = HomePagePagination
+    serializer_class = UserGetCharacterArtSerializer
+    def get(self, request, format=None, *args, **kwargs):
         character_arts = CharacterArt.objects.prefetch_related('chararttag').all()
 
         if not request.GET.get('character_artid'):
-            # FILTER
-            # filter using keywords
-            if request.GET.get('keywords'):
-                query = SearchQuery(request.GET.get('keywords'))
-                vector = SearchVector('title', 'caption', 'character_background', 'character_species', 'characterid__character_name', 'characterid__character_nickname', 'characterid__character_background', 'characterid__character_species', 'character_art_tag')
-                character_arts = character_arts.annotate(rank=SearchRank(vector, query)).distinct().order_by('-rank')
-            # filter using tags
-            if request.GET.get('tags'):
-                query = SearchQuery(request.GET.get('tags'))
-                vector = SearchVector('tag')
-                character_arts = character_arts.filter(id__in=CharArtTag.objects.annotate(search=vector).filter(search=query).values('character_artid'))
-            # filter using gender
-            if request.GET.get('genderid'):
-                character_arts = character_arts.filter(genderid=request.GET.get('genderid'))
-            # filter using species
-            if request.GET.get('species'):
-                query = SearchQuery(request.GET.get('species'))
-                vector = SearchVector('character_species')
-                character_arts = character_arts.annotate(search=vector).filter(search=query)
+            if not request.GET.get('characterid'): 
+                # FILTER
+                # filter using keywords
+                if request.GET.get('keywords'):
+                    query = SearchQuery(request.GET.get('keywords'))
+                    vector = SearchVector('title', 'caption', 'character_background', 'character_species', 'characterid__character_name', 'characterid__character_nickname', 'characterid__character_background', 'characterid__character_species', 'character_art_tag')
+                    character_arts = character_arts.annotate(rank=SearchRank(vector, query)).distinct().order_by('-rank')
+                # filter using tags
+                if request.GET.get('tags'):
+                    arrayOfTags = list(request.GET.get('tags').split(","))
+                    for tag in arrayOfTags: 
+                        query = SearchQuery(tag)
+                        vector = SearchVector('tag')
+                        character_arts = character_arts.filter(id__in=CharArtTag.objects.annotate(search=vector).filter(search=query).values('character_artid'))
+                # filter using gender
+                if request.GET.get('genderid'):
+                    character_arts = character_arts.filter(genderid=request.GET.get('genderid'))
+                # filter using species
+                if request.GET.get('species'):
+                    query = SearchQuery(request.GET.get('species'))
+                    vector = SearchVector('character_species')
+                    character_arts = character_arts.annotate(search=vector).filter(search=query)
+            #filter using characterid
+            if request.GET.get('characterid'):
+                character_arts = character_arts.filter(characterid=request.GET.get('characterid'))
             # SORT
             if request.GET.get('order_by'):
                 # sort by newest
@@ -330,33 +380,24 @@ class UserGetCharacterArtView(APIView):
                 # sort by most views
                 if request.GET.get('order_by') == 'views':
                     character_arts = character_arts.order_by('-page_views')
-            
-            serializer = UserGetCharacterArtSerializer(character_arts, many=True)
-            return Response(serializer.data)
+            page = self.paginate_queryset(character_arts)
+            if page is not None:           
+                serializer = self.get_paginated_response(self.serializer_class(page, many=True).data)
+            else:
+                serializer = self.serializer_class(character_arts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         id_list = json.loads(request.GET.get('character_artid'))
         character_arts = character_arts.filter(id__in=id_list)
-        # SORT
-        if request.GET.get('order_by'):
-            # sort by newest
-            if request.GET.get('order_by') == 'newest':
-                character_arts = character_arts.order_by('-date_created')
-            # sort by oldest
-            elif request.GET.get('order_by') == 'oldest':
-                character_arts = character_arts.order_by('date_created')
-            # sort by trending
-            elif request.GET.get('order_by') == 'trending':
-                character_arts = sorted(character_arts, key=lambda t: t.trending_score, reverse=True)
-            # sort by most views
-            if request.GET.get('order_by') == 'views':
-                character_arts = character_arts.order_by('-page_views')
         serializer = UserGetCharacterArtSerializer(character_arts, many=True)
         return Response(serializer.data)
 
-class UserGetCharacterView(APIView):
+class UserGetCharacterView(APIView, PaginationHandlerMixin):
+    pagination_class = HomePagePagination
 
-    def get(self, request):
+    def get(self, request, format=None, *args, **kwargs):
         characters = Character.objects.prefetch_related('chartag').all()
+        serializer = UserGetCharacterSerializer
 
         if not request.GET.get('characterid'):
             # FILTER
@@ -367,9 +408,11 @@ class UserGetCharacterView(APIView):
                 characters = characters.annotate(rank=SearchRank(vector, query)).order_by('-rank')
             # filter using tags
             if request.GET.get('tags'):
-                query = SearchQuery(request.GET.get('tags'))
-                vector = SearchVector('tag')
-                characters = characters.filter(id__in=CharacterTag.objects.annotate(search=vector).filter(search=query).values('characterid'))
+                arrayOfTags = list(request.GET.get('tags').split(","))
+                for tag in arrayOfTags: 
+                    query = SearchQuery(tag)
+                    vector = SearchVector('tag')
+                    characters = characters.filter(characterid__in=CharacterTag.objects.annotate(search=vector).filter(search=query).values('characterid'))
             # filter using gender
             if request.GET.get('genderid'):
                 characters = characters.filter(genderid=request.GET.get('genderid'))
@@ -392,42 +435,59 @@ class UserGetCharacterView(APIView):
                 # sort by most views
                 if request.GET.get('order_by') == 'views':
                     characters = characters.order_by('-page_views')
-            
-            serializer = UserGetCharacterSerializer(characters, many=True)
-            return Response(serializer.data)
+        
+            page = self.paginate_queryset(characters)
+            if page is not None:           
+                serializer = self.get_paginated_response(UserGetCharacterSerializer(page, many=True).data)
+            else:
+                serializer = UserGetCharacterSerializer(characters, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         id_list = json.loads(request.GET.get('characterid'))
-        characters = characters.filter(id__in=id_list)
-        # SORT
-        if request.GET.get('order_by'):
-            # sort by newest
-            if request.GET.get('order_by') == 'newest':
-                characters = characters.order_by('-date_created')
-            # sort by oldest
-            elif request.GET.get('order_by') == 'oldest':
-                characters = characters.order_by('date_created')
-            # sort by trending
-            elif request.GET.get('order_by') == 'trending':
-                characters = sorted(characters, key=lambda t: t.trending_score, reverse=True)
-            # sort by most views
-            if request.GET.get('order_by') == 'views':
-                characters = characters.order_by('-page_views')
+        characters = characters.filter(characterid__in=id_list)
         serializer = UserGetCharacterSerializer(characters, many=True)
         return Response(serializer.data)
 
-class UserGetCommentView(APIView):
+class UserGetCommentView(APIView, PaginationHandlerMixin):
+    pagination_class = BasicPagination
+    serializer = UserGetCommentSerializer
 
     def get(self, request):
         queryset = Comment.objects.filter(character_artid=request.GET.get('character_artid'))
-        serializer = UserGetCommentSerializer(queryset, many=True)
-        return Response(serializer.data)
+        if request.GET.get('order_by'):
+            # sort by newest
+            if request.GET.get('order_by') == 'newest':
+                comments = queryset.order_by('-date_created')
+            # sort by oldest
+            elif request.GET.get('order_by') == 'oldest':
+                comments = queryset.order_by('date_created')
+        page = self.paginate_queryset(comments)
+        if page is not None:           
+            serializer = self.get_paginated_response(UserGetCommentResponseSerializer(page, many=True).data)
+        else:
+            serializer = UserGetCommentResponseSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-class UserGetCommentResponseView(APIView):
+class UserGetCommentResponseView(APIView, PaginationHandlerMixin):
+    pagination_class = BasicPagination
+    serializer = UserGetCommentResponseSerializer
 
     def get(self, request):
         queryset = CommentCommentReply.objects.filter(commentid=request.GET.get('commentid'))
         serializer = UserGetCommentResponseSerializer(queryset, many=True)
-        return Response(serializer.data)
+        if request.GET.get('order_by'):
+            # sort by newest
+            if request.GET.get('order_by') == 'newest':
+                comments = queryset.order_by('-date_created')
+            # sort by oldest
+            elif request.GET.get('order_by') == 'oldest':
+                comments = queryset.order_by('date_created')
+        page = self.paginate_queryset(comments)
+        if page is not None:           
+            serializer = self.get_paginated_response(UserGetCommentResponseSerializer(page, many=True).data)
+        else:
+            serializer = UserGetCommentResponseSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UserCreateCommentResponseView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -615,3 +675,29 @@ class UserGetUserCountView(APIView):
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class UserGetCharArtUrlView(APIView):
+
+    def get(self, request):
+        url = CharacterArt.objects.get(character_art_url=request.GET.get("character_art_url"))
+        serializer = UserGetCharArtUrlSerializer(url)
+        return Response(serializer.data)
+
+class UserViewCharartView(APIView):
+
+    def patch(self, request):
+        queryitem = CharacterArt.objects.get(id=request.GET.get('character_artid'))
+        serializer = UserViewCharartSerializer(queryitem, data=request.data, partial=True) 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserViewCharView(APIView):
+
+    def patch(self, request):
+        queryitem = Character.objects.get(characterid=request.GET.get('characterid'))
+        serializer = UserViewCharSerializer(queryitem, data=request.data, partial=True) 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap');
+
+* {
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +16,210 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* DROPDOWN MENU, keep in screen */
+.navbar .dropdown-menu-right { 
+  right: 0; 
+  left: auto; 
+}
+/* HEADER */
+.headerCol {
+  padding: 0px;
+}
+.header.collapse.show, .header.collapsing {
+  margin-top: 8px;
+}
+/* SEARCH BAR */
+.form-control:focus:not(.commentReplyBox), .form-select:focus {
+  border-color: #f7b232;
+  box-shadow: 0 0 0 0.2rem rgba(255, 160, 36, 0.25);
+}
+.commentReplyBox:focus {
+  border-color: none;
+  box-shadow: none;
+}
+@media only screen and (max-width: 991px) {
+  #headerSearchbarCol {
+    display: none;
+  }
+}
+#headerSearchbarForm {
+  margin-top: 5px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+@media only screen and (min-width: 991px) {
+  #headerSearchbarForm {
+    display: none;
+  }
+}
+
+/* MODAL, solves greyed out problem */
+.modal-backdrop {
+  /* bug fix - no overlay */    
+  display: none;    
+}
+
+/* PAGE CONTAINER */
+.page-container {
+  padding: 0px;
+}
+
+/* USERGATE CONTAINER */
+.usergate-logo {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#registerCountryInput {
+  padding-bottom: 0px;
+}
+@media (min-width: 574px) {
+  .container-small {
+      width: 400px;
+      border: solid 1.5px lightgray;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      padding-top: 12px;
+      padding-bottom: 12px;
+      border-radius: 5px;
+      margin-top: 25vh;
+  }
+  .container-medium {
+    width: 700px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-radius: 5px;
+    margin-top: 25vh;
+}
+  .container-large {
+      width: 970px;
+  } 
+  .container-character-page-top {
+    width: 700px;
+    height: 175px;
+  }
+} 
+@media (min-width: 992px) {
+  .container-small {
+      width: 400px;
+      border: solid 1.5px lightgray;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      padding-top: 12px;
+      padding-bottom: 12px;
+      border-radius: 5px;
+      margin-top: 25vh;
+  }
+  .container-medium {
+    width: 700px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-radius: 5px;
+    margin-top: 25vh;
+}
+  .container-large {
+      width: 1170px;
+  } 
+} 
+@media (min-width: 1200px) {
+  .container-small {
+      width: 400px;
+      border: solid 1.5px lightgray;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      padding-top: 12px;
+      padding-bottom: 12px;
+      border-radius: 5px;
+      margin-top: 25vh;
+  }
+  .container-medium {
+    width: 700px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-radius: 5px;
+    margin-top: 25vh;
+}
+  .container-large {
+      width: 1500px;
+  } 
+}
+.container-small, .container-medium .container-large {
+  max-width: 100%;
+}
+
+/* COLOR */
+.background-color-orange {
+  background-color: rgb(255, 207, 118);
+}
+
+/* PASSWORD */
+.notMatchingPasswordWarning {
+  color: red !important;
+}
+
+/* FONT SIZE */
+.font-size-small {
+  font-size: 14px;
+}
+
+/* FONT COLOLR */
+.font-color-gray {
+  color: gray;
+}
+#controlled-tab-example-tab-home, #controlled-tab-example-tab-new {
+  color:gray;
+}
+
+.itemCardImg {
+  width: 100%;
+}
+
+/* LOADER */
+.loader {
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid orange;
+  border-right: 16px solid rgb(255, 206, 114);
+  border-bottom: 16px solid orange;
+  border-left: 16px solid rgb(255, 206, 114);
+  width: 40px;
+  height: 40px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.disappear {
+  display: none;
+}
+
+/* CHARART IMAGE */
+
+/* .charartImage {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+} */
+
+/* img {
+  color: rgb(255, 219, 152)
+} */
+
+/* BUTTON */
+
+.btn:focus {
+  border-color: none;
+  box-shadow: none;
+}
+
+.box-shadow {
+  border: solid 1.5px lightgray;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }

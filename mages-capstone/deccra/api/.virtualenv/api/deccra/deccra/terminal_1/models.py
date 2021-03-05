@@ -52,6 +52,7 @@ class CharacterArt(models.Model):
     character_hates = models.CharField(max_length=100, blank=True)
     characterid = models.ForeignKey('Character', on_delete=models.CASCADE, related_name='char_art_char', blank=True, null=True)
     character_art_tag = models.TextField(blank=True)
+    character_art_url = models.TextField(blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     page_views = models.BigIntegerField(blank=True, null=False, default=0)

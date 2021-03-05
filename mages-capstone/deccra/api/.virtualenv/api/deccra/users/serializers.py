@@ -21,8 +21,8 @@ class UserChangeDetailsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['email', 'username', 'country', 'self_introduction', 'date_of_birth', 'language']
-        read_only_fields = ['email']
+        fields = ['id', 'email', 'username', 'country', 'self_introduction', 'date_of_birth', 'language']
+        read_only_fields = ['email', 'id']
 
 class UserChangePasswordSerializer(serializers.Serializer):
     
@@ -44,3 +44,4 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'username', 'country', 'self_introduction']
+

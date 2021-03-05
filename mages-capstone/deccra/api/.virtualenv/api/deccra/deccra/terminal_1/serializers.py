@@ -8,14 +8,14 @@ class UserCreateCharacterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
-        fields = ['characterid', 'character_name', 'character_nickname', 'genderid', 'character_age', 'character_species', 'character_background', 'character_birthday', 'character_height', 'character_dialogue']
+        fields = ['characterid', 'character_name', 'character_nickname', 'genderid', 'character_age', 'character_species', 'character_background', 'character_birthday', 'character_height', 'character_dialogue', 'character_tag', 'date_created', 'date_updated']
         read_only_fields = ['characterid']
         
 class UserCreatedCharacterDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
-        fields = ['characterid', 'character_name', 'character_nickname', 'character_nickname', 'genderid', 'character_age', 'character_species', 'character_background', 'character_birthday', 'character_height', 'character_dialogue', 'date_created', 'date_updated', 'num_of_views', 'userid']
+        fields = ['characterid', 'character_name', 'character_nickname', 'character_nickname', 'genderid', 'character_age', 'character_species', 'character_background', 'character_birthday', 'character_height', 'character_dialogue', 'character_tag', 'date_created', 'date_updated', 'num_of_views', 'userid']
         read_only_fields = ['characterid', 'date_created', 'date_updated', 'num_of_views', 'userid']
 
 class AdminCreateGenderSerializer(serializers. ModelSerializer):
@@ -29,14 +29,14 @@ class UserCreateCharacterArtSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CharacterArt
-        fields = ['id', 'characterid', 'title', 'caption']
+        fields = ['id', 'characterid', 'title', 'caption', 'genderid', 'character_species', 'character_background', 'character_art_tag', 'character_dialogue', 'character_art_url']
         read_only_fields = ['id']
 
 class UserCreatedCharacterArtDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CharacterArt
-        fields = ['id', 'title', 'caption']
+        fields = ['id', 'characterid', 'title', 'caption', 'genderid', 'character_species', 'character_background', 'character_art_tag', 'character_dialogue', 'date_created', 'date_updated']
         read_only_fields = ['id']
 
 class UserCreateCommentSerializer(serializers.ModelSerializer):
@@ -93,7 +93,7 @@ class UserGetUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'date_joined', 'country', 'self_introduction']
+        fields = ['id', 'username', 'date_joined', 'country', 'self_introduction']
 
 class UserGetCharacterArtSerializer(serializers.ModelSerializer):
     
@@ -197,3 +197,34 @@ class UserGetCountSerializer(serializers.Serializer):
     character_art_created_count = serializers.IntegerField(required=False)
 
 
+class UserGetCharArtUrlSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CharacterArt
+        fields = ['character_art_url']
+
+class UserViewCharartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CharacterArt
+        fields = ['page_views']
+
+    def to_internal_value(self, data):
+
+        values = super().to_internal_value(data)
+        values['page_views'] = int(data['page_views']) + CharacterArt.objects.get(id=data['character_artid']).page_views
+
+        return values
+
+class UserViewCharSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Character
+        fields = ['page_views']
+    
+    def to_internal_value(self, data):
+
+        values = super().to_internal_value(data)
+        values['page_views'] = int(data['page_views']) + Character.objects.get(characterid=data['characterid']).page_views
+
+        return values
